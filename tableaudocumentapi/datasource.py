@@ -274,19 +274,23 @@ class Datasource(object):
         # Find the datasource element in the XML tree
         datasource = self._datasourceTree.getroot().find('datasource')
 
-        # Find the last dimension or measure element in the XML tree
-        dimensions = datasource.findall('dimension')
-        measures = datasource.findall('measure')
-        if dimensions or measures:
-            last_field = dimensions[-1] if dimensions else measures[-1]
-            last_field_index = list(datasource).index(last_field)
-            datasource.insert(last_field_index + 1, column)
+        # Find the last column element in the XML tree with the same role as the new column
+        last_column = None
+        for c in reversed(datasource.findall('column')):
+            if c.get('role') == role:
+                last_column = c
+                break
+
+        # Insert the new column element after the last column element with the same role
+        if last_column is not None:
+            datasource.insert(list(datasource).index(last_column) + 1, column)
         else:
             datasource.insert(0, column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
         return self.fields[name]
+
 
     def remove_field(self, field):
         """ Remove a given field
