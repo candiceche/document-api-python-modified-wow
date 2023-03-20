@@ -260,9 +260,18 @@ class Datasource(object):
         Returns:
             The new field that was created. Field.
         """
+
+
         # If no caption is specified, create one with the same format Tableau does
         if not caption:
             caption = name.replace('[', '').replace(']', '').title()
+
+        # Read tree using lxml
+        root =  ET.parse(source_workbbok)
+
+        # Index for insertion into tree
+        dim_index = int(root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
+        measure_index = int(root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
 
         # Create the new column element
         column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
@@ -271,23 +280,17 @@ class Datasource(object):
         if field_type:
             column.set('type', field_type)
 
-        # Find the datasource element in the XML tree
-        datasource = self._datasourceTree.getroot().find('datasource[not(self::datasource-dependencies)]')
 
-        #datasource = self._datasourceTree.getroot().find('datasource')
+        # Insert column based on role
+        for c in root.find('.//column'):
+            if c.get('role') == 'dimension':
+                root.insert(dim_index, ET.Element(column))
 
-        # Find the first column element in the XML tree with the same role as the new column
-        first_column = None
-        for c in datasource.findall('column'):
-            if c.get('role') == role:
-                first_column = c
-                break
+            elif c.get('role') == 'measure':
+                datasource.insert(measure_index, ET.Element(column))
 
-        # Insert the new column element before the first column element with the same role
-        if first_column is not None:
-            datasource.insert(list(datasource).index(first_column), column)
-        else:
-            datasource.append(column)
+            else:
+                datasource.append(column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
