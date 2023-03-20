@@ -272,7 +272,14 @@ class Datasource(object):
         # Create the elements
         column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
 
-        self._datasourceTree.getroot().append(column)
+        # Find where columns are located
+        columns_all = self._datasourceTree.getroot().find('column')
+
+        # Insert the new field at the desired index
+        columns_all.insert(index + 1, column)
+
+        # code from master branch
+        ##self._datasourceTree.getroot().append(column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
