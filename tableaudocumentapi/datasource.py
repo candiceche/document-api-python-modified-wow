@@ -248,7 +248,7 @@ class Datasource(object):
     def _get_custom_sql(self):
         return [qry for qry in self._datasourceXML.iter('relation')]
 
-    def add_field(self, name, datatype, role, field_type, caption, hidden):
+    def add_field(self,name, datatype, role, field_type, caption, hidden):
         """ Adds a base field object with the given values.
         Args:
             name: Name of the new Field. String.
@@ -267,11 +267,11 @@ class Datasource(object):
             caption = name.replace('[', '').replace(']', '').title()
 
         # Read tree using lxml
-        root =  ET.parse(source_workbbok)
+        ds_root =  self._datasourceTree.getroot()
 
         # Index for insertion into tree
-        dim_index = int(root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
-        measure_index = int(root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
+        dim_index = int(ds_root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
+        measure_index = int(ds_root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
 
         # Create the new column element
         column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
@@ -282,17 +282,17 @@ class Datasource(object):
 
 
         # Insert column based on role
-        for c in root.find('.//column'):
+        for c in ds_root.findall('.//column'):
             if c.get('role') == 'dimension':
-                root.insert(dim_index, ET.Element(column))
+                ds_root.insert(dim_index, ET.Element(column))
 
             elif c.get('role') == 'measure':
-                datasource.insert(measure_index, ET.Element(column))
+                ds_root.insert(measure_index, ET.Element(column))
 
             else:
-                datasource.append(column)
-
+                ET.SubElement(ds_root,column)
         # Refresh fields to reflect changes and return the Field object
+        
         self._refresh_fields()
         return self.fields[name]
 
