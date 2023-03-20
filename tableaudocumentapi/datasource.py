@@ -248,38 +248,40 @@ class Datasource(object):
     def _get_custom_sql(self):
         return [qry for qry in self._datasourceXML.iter('relation')]
 
-    def add_field(self, name, datatype, role, field_type, caption, hidden):
+    def add_field(self, name, datatype, role, field_type, caption, hidden, index):
         """ Adds a base field object with the given values.
-
         Args:
             name: Name of the new Field. String.
             datatype:  Datatype of the new field. String.
             role:  Role of the new field. String.
             field_type:  Type of the new field. String.
             caption:  Caption of the new field. String.
-
+            index: Index of the column that the new column should come after. Integer.
         Returns:
             The new field that was created. Field.
         """
-        # TODO: A better approach would be to create an empty column and then
-        # use the input validation from its "Field"-object-representation to set values.
-        # However, creating an empty column causes errors :(
-
         # If no caption is specified, create one with the same format Tableau does
         if not caption:
             caption = name.replace('[', '').replace(']', '').title()
 
-        # Create the elements
-        column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
+        # Create the new column element
+        column = Element('column', {'name': name, 'caption': caption, 'datatype': datatype, 'role': role})
+        if hidden:
+            column.set('hidden', str(hidden).lower())
+        if field_type:
+            column.set('type', field_type)
 
-        # Find where columns are located
-        columns_all = self._datasourceTree.getroot().find('column')
+        # Find all the column elements in the datasource
+        columns = self._datasourceTree.getroot().findall('column')
 
-        # Insert the new field at the desired index
-        columns_all.insert(index + 1, column)
+        # Find the index where the new column should be inserted based on its name or caption
+        for i, c in enumerate(columns):
+            if c.get('name') == name or c.get('caption') == caption:
+                index = i
+                break
 
-        # code from master branch
-        ##self._datasourceTree.getroot().append(column)
+        # Insert the new column element at the desired index
+        self._datasourceTree.getroot().insert(index + 1, column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
