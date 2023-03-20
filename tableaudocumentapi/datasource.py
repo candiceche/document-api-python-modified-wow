@@ -265,7 +265,7 @@ class Datasource(object):
             caption = name.replace('[', '').replace(']', '').title()
 
         # Create the new column element
-        column = Element('column', {'name': name, 'caption': caption, 'datatype': datatype, 'role': role})
+        column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
         if hidden:
             column.set('hidden', str(hidden).lower())
         if field_type:
