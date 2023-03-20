@@ -272,7 +272,9 @@ class Datasource(object):
             column.set('type', field_type)
 
         # Find the datasource element in the XML tree
-        datasource = self._datasourceTree.getroot().find('datasource')
+        datasource = self._datasourceTree.getroot().find('datasource[not(self::datasource-dependencies)]')
+
+        #datasource = self._datasourceTree.getroot().find('datasource')
 
         # Find the first column element in the XML tree with the same role as the new column
         first_column = None
