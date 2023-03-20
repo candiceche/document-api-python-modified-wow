@@ -248,7 +248,7 @@ class Datasource(object):
     def _get_custom_sql(self):
         return [qry for qry in self._datasourceXML.iter('relation')]
 
-    def add_field(self, name, datatype, role, field_type, caption, hidden, index):
+    def add_field(self, name, datatype, role, field_type, caption, hidden):
         """ Adds a base field object with the given values.
         Args:
             name: Name of the new Field. String.
@@ -256,7 +256,7 @@ class Datasource(object):
             role:  Role of the new field. String.
             field_type:  Type of the new field. String.
             caption:  Caption of the new field. String.
-            index: Index of the column that the new column should come after. Integer.
+            hidden:  Whether the new field should be hidden. Boolean.
         Returns:
             The new field that was created. Field.
         """
@@ -271,17 +271,18 @@ class Datasource(object):
         if field_type:
             column.set('type', field_type)
 
-        # Find all the column elements in the datasource
-        columns = self._datasourceTree.getroot().findall('column')
+        # Find the datasource element in the XML tree
+        datasource = self._datasourceTree.getroot().find('datasource')
 
-        # Find the index where the new column should be inserted based on its name or caption
-        for i, c in enumerate(columns):
-            if c.get('name') == name or c.get('caption') == caption:
-                index = i
-                break
-
-        # Insert the new column element at the desired index
-        self._datasourceTree.getroot().insert(index + 1, column)
+        # Find the last dimension or measure element in the XML tree
+        dimensions = datasource.findall('dimension')
+        measures = datasource.findall('measure')
+        if dimensions or measures:
+            last_field = dimensions[-1] if dimensions else measures[-1]
+            last_field_index = list(datasource).index(last_field)
+            datasource.insert(last_field_index + 1, column)
+        else:
+            datasource.insert(0, column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
