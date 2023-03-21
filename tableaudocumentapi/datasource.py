@@ -321,7 +321,7 @@ class Datasource(object):
         """
         # Dynamically create the name of the field
         name = '[Calculation_{}]'.format(str(uuid4().int)[:18])
-        field = self.add_field(name, datatype, role, type, caption, hidden)
+        field = self.add_field(name, datatype, role, type, caption, hidden, calc_field_index)
         field.calculation = formula
 
-        return field,calc_field_index
+        return field
