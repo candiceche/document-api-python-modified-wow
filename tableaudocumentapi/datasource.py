@@ -283,7 +283,7 @@ class Datasource(object):
         column.set("name",name)
 
         # Insert new calculation into xml
-        self._datasourceTree.getroot().insert(calc_field_index,[column])
+        self._datasourceTree.getroot().insert(index = calc_field_index, element = column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
