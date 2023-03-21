@@ -267,15 +267,23 @@ class Datasource(object):
             caption = name.replace('[', '').replace(']', '').title()
 
         # Create the new column element
-        column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
-        if hidden:
-            column.set('hidden', str(hidden).lower())
-        if field_type:
-            column.set('type', field_type)
+        #column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
+        #if hidden:
+         #   column.set('hidden', str(hidden).lower())
+        #if field_type:
+         #   column.set('type', field_type)
+
+        # Create the new column element
+        column = ET.Element("column")
+        column.set("caption",caption)
+        column.set("datatype",datatype)
+        column.set("hidden",hidden)
+        column.set("role", role)
+        column.set("type",field_type)
+        column.set("name",name)
 
         # Insert new calculation into xml
-
-        self._datasourceTree.getroot().insert(calc_field_index, ET.Element(column))
+        self._datasourceTree.getroot().insert(calc_field_index,column)
 
         # Refresh fields to reflect changes and return the Field object
         self._refresh_fields()
