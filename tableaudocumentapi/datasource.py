@@ -305,7 +305,7 @@ class Datasource(object):
         """
         return {k: v for k, v in self.fields.items() if v.calculation is not None}
 
-    def add_calculation(self, caption, formula, datatype, role, type, hidden):
+    def add_calculation(self, caption, formula, datatype, role, type, hidden,calc_field_index):
         """ Adds a calculated field with the given values.
 
         Args:
@@ -324,4 +324,4 @@ class Datasource(object):
         field = self.add_field(name, datatype, role, type, caption, hidden)
         field.calculation = formula
 
-        return field
+        return field,calc_field_index
