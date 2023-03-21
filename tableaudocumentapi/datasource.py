@@ -266,8 +266,6 @@ class Datasource(object):
         if not caption:
             caption = name.replace('[', '').replace(']', '').title()
 
-
-
         # Create the new column element
         column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
         if hidden:
@@ -277,11 +275,10 @@ class Datasource(object):
 
         # Insert new calculation into xml
 
-        ds_root.insert(calc_field_index, ET.Element("column"))
+        self._datasourceTree.getroot().insert(calc_field_index, ET.Element(column))
 
         # Refresh fields to reflect changes and return the Field object
-         self._refresh_fields()
-
+        self._refresh_fields()
         return self.fields[name]
 
     def remove_field(self, field):
