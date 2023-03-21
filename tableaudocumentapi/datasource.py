@@ -248,7 +248,7 @@ class Datasource(object):
     def _get_custom_sql(self):
         return [qry for qry in self._datasourceXML.iter('relation')]
 
-    def add_field(self,name, datatype, role, field_type, caption, hidden):
+    def add_field(self,name, datatype, role, field_type, caption, hidden,calc_field_index):
         """ Adds a base field object with the given values.
         Args:
             name: Name of the new Field. String.
@@ -266,12 +266,7 @@ class Datasource(object):
         if not caption:
             caption = name.replace('[', '').replace(']', '').title()
 
-        # Read tree using lxml
-        ds_root =  self._datasourceTree.getroot()
 
-        # Index for insertion into tree
-        dim_index = int(ds_root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
-        measure_index = int(ds_root.xpath('count(//*[@caption="docapi_measure"]/preceding-sibling::*)+1'))-1
 
         # Create the new column element
         column = Field.create_field_xml(caption, datatype, hidden, role, field_type, name)
@@ -280,20 +275,13 @@ class Datasource(object):
         if field_type:
             column.set('type', field_type)
 
+        # Insert new calculation into xml
 
-        # Insert column based on role
-        for c in ds_root.findall('.//column'):
-            if c.get('role') == 'dimension':
-                ds_root.insert(dim_index, ET.Element(column))
+        ds_root.insert(calc_field_index, ET.Element("column"))
 
-            elif c.get('role') == 'measure':
-                ds_root.insert(measure_index, ET.Element(column))
-
-            else:
-                ET.SubElement(ds_root,column)
         # Refresh fields to reflect changes and return the Field object
-        
-        self._refresh_fields()
+         self._refresh_fields()
+
         return self.fields[name]
 
     def remove_field(self, field):
